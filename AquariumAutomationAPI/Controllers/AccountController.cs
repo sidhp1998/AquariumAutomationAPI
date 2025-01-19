@@ -51,6 +51,7 @@ namespace AquariumAutomationAPI.Controllers
                 (
                     new UserDTO
                     {
+                        UserId = registerUser.UserId,
                         Email = registerUser.UserEmail,
                         Token = _tokenService.CreateToken(registerUser)
                     }
@@ -104,6 +105,7 @@ namespace AquariumAutomationAPI.Controllers
             return Ok(
                 new UserDTO
                 {
+                    UserId=user.UserId,
                     Email = user.UserEmail,
                     Token = _tokenService.CreateToken(user)
                 }
