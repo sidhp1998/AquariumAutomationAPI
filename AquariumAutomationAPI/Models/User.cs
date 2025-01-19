@@ -14,6 +14,5 @@
         public byte[]? PasswordSalt { get; set; }
         public required DateTime AccountCreatedDate { get; set; }
 
-        //public required bool IsActive { get; set; }
     }
 }

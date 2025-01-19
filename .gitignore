@@ -1,0 +1,33 @@
+# Build files and output
+bin/
+obj/
+*.exe
+*.dll
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs and temporary files
+*.log
+logs/
+temp/
+
+# ASP.NET generated files
+*.VS/
+.vs/
+.vscode/
+
+# Package directories
+packages/
+node_modules/
+
+# Environment and secret files
+*.env
+
+
+# Other system files
+Thumbs.db
+.DS_Store
