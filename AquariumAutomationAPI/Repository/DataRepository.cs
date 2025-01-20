@@ -14,7 +14,11 @@ namespace AquariumAutomationAPI.Repository
             ["GetUserByEmail"] = @$"AquariumAutomationApp.dbo.uspGetUserByEmail",
             ["RegisterUserToDb"] = @$"AquariumAutomationApp.dbo.uspRegisterUser",
             ["CreateNewAquariumToDb"] = $@"AquariumAutomationApp.dbo.uspCreateAquarium",
-            ["GetAquariumInfoById"] = $@"AquariumAutomationApp.dbo.uspGetAquariumInfoById"
+            ["GetAquariumInfoByAquariumId"] = $@"AquariumAutomationApp.dbo.uspGetAquariumInfoByAquariumId",
+            ["GetAquariumInfoByUserId"] = $@"AquariumAutomationApp.dbo.uspGetAquariumInfoByUserId",
+            ["UpdateAquarium"] = $@"AquariumAutomationApp.dbo.uspUpdateAquarium",
+            ["DeleteAquarium"] = $@"AquariumAutomationApp.dbo.uspDeleteAquarium",
+            ["CheckAquariumExists"] = $@"AquariumAutomationApp.dbo.uspCheckAquariumExists"
         };
 
         public DataRepository(DataContext dataContext)
@@ -96,9 +100,9 @@ namespace AquariumAutomationAPI.Repository
             }
         }
 
-        public Aquarium? GetAquariumInfoById(int AquariumId)
+        public Aquarium? GetAquariumInfoByAquariumId(int AquariumId)
         {
-            string storedProcedure = _sqlCommandStore["GetAquariumInfoById"];
+            string storedProcedure = _sqlCommandStore["GetAquariumInfoByAquariumId"];
             List<Aquarium> aquariums = _dataContext.ExecuteStoredProcedure<Aquarium>(storedProcedure,new {AquariumId}).ToList();
             if(aquariums.Count == 0)
             {
@@ -109,6 +113,65 @@ namespace AquariumAutomationAPI.Repository
                 return aquariums[0];
             }
         }
+        public List<Aquarium> GetAquariumInfoByUserId(int UserId)
+        {
+            string storedProcedure = _sqlCommandStore["GetAquariumInfoByUserId"];
+            List<Aquarium> aquariums = _dataContext.ExecuteStoredProcedure<Aquarium>(storedProcedure, new { UserId }).ToList();
+            return aquariums;
+        }
 
+        public int UpdateAquarium(Aquarium aquarium)
+        {
+            int checkStatus = CheckAquariumExists(aquarium.AquariumId);
+            if (checkStatus == 1)
+            {
+                string storedProcedure = _sqlCommandStore["UpdateAquarium"];
+                using (var connection = _dataContext.CreateConnection())
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@AquariumId", aquarium.AquariumId);
+                    parameters.Add("@AquariumName", aquarium.AquariumName);
+                    parameters.Add("@AquariumDescription", aquarium.AquariumDescription);
+                    parameters.Add("@AquariumMasterComments", aquarium.AquariumComments);
+                    parameters.Add("@AquariumFixedPropertyId", aquarium.AquariumFixedPropertyId);
+                    parameters.Add("@AquariumFixedPropertyComments", aquarium.AquariumFixedPropertyComments);
+                    parameters.Add("@Length", aquarium.Length);
+                    parameters.Add("@Width", aquarium.Width);
+                    parameters.Add("@Height", aquarium.Height);
+                    parameters.Add("@Status", dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                    connection.Execute(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
+
+                    return parameters.Get<int>("@Status");
+                }
+            }
+            else return checkStatus;
+        }
+
+        public int DeleteAquarium(int aquariumId)
+        {
+            string storedProcedure = _sqlCommandStore["DeleteAquarium"];
+            using (var connection = _dataContext.CreateConnection())
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@AquariumId", aquariumId);
+                parameters.Add("@Status", dbType: DbType.Int32, direction: ParameterDirection.Output);
+                connection.Execute(storedProcedure, parameters, commandType:CommandType.StoredProcedure);
+                return parameters.Get<int>("@Status");
+            }
+        }
+
+        private int CheckAquariumExists(int aquariumId)
+        {
+            string storedProcedure = _sqlCommandStore["CheckAquariumExists"];
+            using (var connection = _dataContext.CreateConnection())
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@AquariumId", aquariumId);
+                parameters.Add("@Status", dbType: DbType.Int32, direction: ParameterDirection.Output);
+                connection.Execute(storedProcedure, parameters, commandType: CommandType.StoredProcedure);
+                return parameters.Get<int>("@Status");
+            }
+        }
     }
 }
